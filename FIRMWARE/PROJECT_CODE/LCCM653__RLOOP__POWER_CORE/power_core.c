@@ -169,7 +169,9 @@ void vPWRNODE__Process(void)
 			vPWRNODE_BMS__Init();
 
 			//start the TSYS01 temp sensor
-			sPWRNODE.sInit.sState = INIT_STATE__TSYS01;
+			//sPWRNODE.sInit.sState = INIT_STATE__TSYS01;
+
+			sPWRNODE.sInit.sState = INIT_STATE__MS5607;
 			break;
 
 
@@ -183,22 +185,35 @@ void vPWRNODE__Process(void)
 			sPWRNODE.sInit.sState = INIT_STATE__RUN;
 			break;
 
+		case INIT_STATE__MS5607:
+					// ONLY NEEDS TO BE RUN ONCE
+
+					// init MS5607
+					vMS5607__Init();
+
+					//change to run state
+					sPWRNODE.sInit.sState = INIT_STATE__RUN;
+					break;
 
 		case INIT_STATE__RUN:
 
 			//normal run state
-			#if C_LOCALDEF__LCCM656__ENABLE_THIS_MODULE == 1U
-				vPWRNODE_PICOMMS__Process();
-			#endif
+//			#if C_LOCALDEF__LCCM656__ENABLE_THIS_MODULE == 1U
+//				vPWRNODE_PICOMMS__Process();
+//			#endif
 
 			//process any BMS tasks
-			vPWRNODE_BMS__Process();
+			//vPWRNODE_BMS__Process();
 
 			//process any temp sensor items
-			vPWRNODE_BATTTEMP__Process();
+			//vPWRNODE_BATTTEMP__Process();
 
 			//process the TSYS01 device
-			vTSYS01__Process();
+			//vTSYS01__Process();
+
+			//process the TSYS01 device
+			vMS5607__Process();
+
 
 			break;
 

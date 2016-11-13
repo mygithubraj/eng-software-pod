@@ -10,7 +10,7 @@
 #include "ms5607.h"
 #if C_LOCALDEF__LCCM648__ENABLE_THIS_MODULE == 1U
 
-extern struct _strMS5607 sMS5607;
+struct _strMS5607 sMS5607;
 
 //locals
 Lint16 s16MS5607__GetCalibrationContants(Luint16 *pu16Values);
@@ -78,6 +78,10 @@ void vMS5607__Process(void)
 			break;
 		case MS5607_STATE__READ_CALIBRATION:
 			s16Return = s16MS5607__GetCalibrationContants(&sMS5607.u16Coefficients[0]);
+			//test
+			Luint16 nprom[] = {0x3132,0x3334,0x3536,0x3738,0x3940,0x4142,0x4344,0x4500};
+			Luint8 testcrc4Result;
+			testcrc4Result = uMS5607__getLSB4Bits(u8MS5607__CRC4(nprom)); // the resulting calculated CRC should be 0xB.
 			if(s16Return >= 0)
 			{
 				//crc check
@@ -265,34 +269,42 @@ Lint16 s16MS5607__GetCalibrationContants(Luint16 *pu16Values)
 	Lint16 s16Return;
 	Luint16 * pu16Temp;
 
+	vRM4_DELAYS__Delay_mS(10U);
 	pu16Temp = &pu16Values[0];
 	s16Return = s16MS5607_I2C__RxU16(C_LOCALDEF__LCCM648__BUS_ADDX, MS5607_CMD__PROM_READ_0, pu16Temp);
 	if(s16Return >= 0)
 	{
+		vRM4_DELAYS__Delay_mS(10U);
 		pu16Temp = &pu16Values[1];
 		s16Return = s16MS5607_I2C__RxU16(C_LOCALDEF__LCCM648__BUS_ADDX, MS5607_CMD__PROM_READ_1, pu16Temp);
 		if(s16Return >= 0)
 		{
+			vRM4_DELAYS__Delay_mS(10U);
 			pu16Temp = &pu16Values[2];
 			s16Return = s16MS5607_I2C__RxU16(C_LOCALDEF__LCCM648__BUS_ADDX, MS5607_CMD__PROM_READ_2, pu16Temp);
 			if(s16Return >= 0)
 			{
+				vRM4_DELAYS__Delay_mS(10U);
 				pu16Temp = &pu16Values[3];
 				s16Return = s16MS5607_I2C__RxU16(C_LOCALDEF__LCCM648__BUS_ADDX, MS5607_CMD__PROM_READ_3, pu16Temp);
 				if(s16Return >= 0)
 				{
+					vRM4_DELAYS__Delay_mS(10U);
 					pu16Temp = &pu16Values[4];
 					s16Return = s16MS5607_I2C__RxU16(C_LOCALDEF__LCCM648__BUS_ADDX, MS5607_CMD__PROM_READ_4, pu16Temp);
 					if(s16Return >= 0)
 					{
+						vRM4_DELAYS__Delay_mS(10U);
 						pu16Temp = &pu16Values[5];
 						s16Return = s16MS5607_I2C__RxU16(C_LOCALDEF__LCCM648__BUS_ADDX, MS5607_CMD__PROM_READ_5, pu16Temp);
 						if(s16Return >= 0)
 						{
+							vRM4_DELAYS__Delay_mS(10U);
 							pu16Temp = &pu16Values[6];
 							s16Return = s16MS5607_I2C__RxU16(C_LOCALDEF__LCCM648__BUS_ADDX, MS5607_CMD__PROM_READ_6, pu16Temp);
 							if(s16Return >= 0)
 							{
+								vRM4_DELAYS__Delay_mS(10U);
 								pu16Temp = &pu16Values[7];
 								s16Return = s16MS5607_I2C__RxU16(C_LOCALDEF__LCCM648__BUS_ADDX, MS5607_CMD__PROM_READ_7, pu16Temp);
 
@@ -437,7 +449,7 @@ void vMS5607__compensateSecondOrder(void)
 // http://www.te.com/commerce/DocumentDelivery/DDEController?Action=srchrtrv&DocNm=AN520_C-code_example_for_MS56xx&DocType=SS&DocLang=EN
 // Code from TE AN520
 //********************************************************
-Luint8 u8MS5607__CRC4(Luint32 * pu32Coefficients)
+Luint8 u8MS5607__CRC4(Luint16 * pu16Coefficients)
 {
 	Luint32 u32count; // simple counter
 	Luint32 u32n_rem; // crc reminder
@@ -447,10 +459,10 @@ Luint8 u8MS5607__CRC4(Luint32 * pu32Coefficients)
 	u32n_rem = 0x00;
 
 	//save read CRC
-	u32crc_read = pu32Coefficients[7];
+	u32crc_read = (Luint32)pu16Coefficients[7];
 
 	//CRC byte is replaced by 0
-	pu32Coefficients[7] = (0xFF00 & (pu32Coefficients[7]));
+	pu16Coefficients[7] = (0xFF00 & (pu16Coefficients[7]));
 
 	// operation is performed on bytes
 	for(u32count = 0; u32count < 16; u32count++)
@@ -458,11 +470,11 @@ Luint8 u8MS5607__CRC4(Luint32 * pu32Coefficients)
 		// choose LSB or MSB
 		if((u32count % 2U) == 1U)
 		{
-			u32n_rem ^= (Luint16) ((pu32Coefficients[u32count>>1]) & 0x00FF);
+			u32n_rem ^= (Luint16) ((pu16Coefficients[u32count>>1]) & 0x00FF);
 		}
 		else
 		{
-			u32n_rem ^= (Luint16) (pu32Coefficients[u32count>>1]>>8);
+			u32n_rem ^= (Luint16) (pu16Coefficients[u32count>>1]>>8);
 		}
 		for (u8n_bit = 8; u8n_bit > 0; u8n_bit--)
 		{
@@ -477,7 +489,7 @@ Luint8 u8MS5607__CRC4(Luint32 * pu32Coefficients)
 		}
 	}
 	u32n_rem= (0x000F & (u32n_rem >> 12)); // // final 4-bit reminder is CRC code
-	pu32Coefficients[7]=u32crc_read; // restore the crc_read to its original place
+	pu16Coefficients[7]= (Luint16) u32crc_read; // restore the crc_read to its original place
 	return (u32n_rem ^ 0x00);
 } 
 

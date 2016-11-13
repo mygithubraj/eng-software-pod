@@ -33,6 +33,7 @@ Lint16 s16MS5607_I2C__TxU8(Luint8 u8DeviceAddx, E_MS5607_CMD_T eRegister, Luint8
 
 Lint16 s16MS5607_I2C__RxU16(Luint8 u8DeviceAddx, E_MS5607_CMD_T eRegister, Luint16 *pu16)
 {
+	Luint8 u8Array[2];
 	Lint16 s16Return;
 	union
 	{
@@ -42,9 +43,11 @@ Lint16 s16MS5607_I2C__RxU16(Luint8 u8DeviceAddx, E_MS5607_CMD_T eRegister, Luint
 
 	//read two bytes
 #ifndef WIN32
-	s16Return = s16RM4_I2C_USER__RxByteArray(u8DeviceAddx, (Luint8)eRegister, &unT.u8[0], 2U);
+	s16Return = s16RM4_I2C_USER__RxByteArray(u8DeviceAddx, (Luint8)eRegister, &u8Array[0], 2U);
 
-	//todo: check mapping
+	//Map
+	unT.u8[1] = u8Array[0];
+	unT.u8[0] = u8Array[1];
 	*pu16 = unT.u16;
 #else
 	//fake on win32
@@ -60,7 +63,7 @@ Lint16 s16MS5607_I2C__RxU24(Luint8 u8DeviceAddx, E_MS5607_CMD_T eRegister, Luint
 	Lint16 s16Return;
 	union
 	{
-		Luint8 u8[3];
+		Luint8 u8[4];
 		Luint32 u32;
 	}unT;
 

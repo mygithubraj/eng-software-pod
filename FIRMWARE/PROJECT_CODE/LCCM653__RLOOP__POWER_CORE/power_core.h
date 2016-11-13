@@ -45,9 +45,11 @@
 			/** Init the BMS layer */
 			INIT_STATE__BMS,
 
-			/** star the TSYS01 */
+			/** start the TSYS01 */
 			INIT_STATE__TSYS01,
 
+			/** start the MS5607 */
+			INIT_STATE__MS5607,
 
 			/** Normal run state */
 			INIT_STATE__RUN
